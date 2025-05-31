@@ -1,23 +1,41 @@
 package com.mayura.movieapp.ui.search
 
 import androidx.lifecycle.*
-import com.mayura.movieapp.data.api.RetrofitInstance
 import com.mayura.movieapp.data.model.Movie
+import com.mayura.movieapp.data.repository.Repository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class SearchViewModel : ViewModel() {
 
-    private val _searchResults = MutableLiveData<List<Movie>>()
-    val searchResults: LiveData<List<Movie>> get() = _searchResults
+    private val repository = Repository()
 
-    private val apiKey = "14f7c50d6a82c630262cf1de7f4b85ca"
+    private val _results = MutableLiveData<List<Movie>>()
+    val results: LiveData<List<Movie>> get() = _results
 
-    fun searchMovies(query: String) {
-        viewModelScope.launch {
-            val response = RetrofitInstance.api.searchMovies(apiKey, query, 1)
-            if (response.isSuccessful) {
-                _searchResults.value = response.body()?.results ?: emptyList()
+    private var searchJob: Job? = null
+
+    fun search(query: String) {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(300)
+            if (query.isNotBlank()) {
+                try {
+                    val response = repository.searchMovies(query)
+                    if (response.isSuccessful) {
+                        _results.postValue(response.body()?.results ?: emptyList())
+                    } else {
+                        _results.postValue(emptyList())
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    _results.postValue(emptyList())
+                }
+            } else {
+                _results.postValue(emptyList())
             }
         }
     }
+
 }

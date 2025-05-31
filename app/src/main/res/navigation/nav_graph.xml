@@ -15,12 +15,28 @@
         android:id="@+id/searchFragment"
         android:name="com.mayura.movieapp.ui.search.SearchFragment"
         android:label="Search"
-        tools:layout="@layout/fragment_search" />
+        tools:layout="@layout/fragment_search"
+        >
+        <action
+            android:id="@+id/action_searchFragment_to_detailsFragment"
+            app:destination="@+id/detailsFragment"
+            />
+    </fragment>
 
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.mayura.movieapp.ui.profile.ProfileFragment"
         android:label="Profile"
         tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/detailsFragment"
+        android:name="com.mayura.movieapp.ui.details.DetailsFragment"
+        android:label="Details">
+        <argument
+            android:name="movie"
+            app:argType="com.mayura.movieapp.data.model.Movie" />
+    </fragment>
+
 
 </navigation>

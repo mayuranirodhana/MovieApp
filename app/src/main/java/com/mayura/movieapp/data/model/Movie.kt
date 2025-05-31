@@ -1,7 +1,10 @@
 package com.mayura.movieapp.data.model
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import kotlinx.android.parcel.Parcelize
 
+@Parcelize
 data class Movie(
     val id: Int,
     val title: String,
@@ -15,4 +18,4 @@ data class Movie(
     val homepage: String?,
     @SerializedName("vote_average")
     val voteAverage: Double
-)
+) : Parcelable

@@ -5,46 +5,49 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.mayura.movieapp.R
 import com.mayura.movieapp.data.model.Movie
+import com.mayura.movieapp.databinding.ItemSearchResultBinding
 
-class SearchAdapter(private var movies: List<Movie>) :
-    RecyclerView.Adapter<SearchAdapter.SearchViewHolder>() {
 
-    fun updateData(newMovies: List<Movie>) {
-        movies = newMovies
-        notifyDataSetChanged()
+class SearchAdapter(
+    private val onItemClick: (Movie) -> Unit
+) : ListAdapter<Movie, SearchAdapter.SearchViewHolder>(DiffCallback()) {
+
+    inner class SearchViewHolder(private val binding: ItemSearchResultBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(movie: Movie) {
+            val year = movie.releaseDate.take(4).ifEmpty { "N/A" }
+            binding.textViewTitle.text = "${movie.title} ($year)"
+
+            Glide.with(binding.imageViewThumbnail.context)
+                .load("https://image.tmdb.org/t/p/w185${movie.posterPath}")
+                .error(R.drawable.sample_movie)
+                .into(binding.imageViewThumbnail)
+
+            // Handle item click
+            binding.root.setOnClickListener {
+                onItemClick(movie)
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_search_result, parent, false)
-        return SearchViewHolder(view)
+        val binding = ItemSearchResultBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return SearchViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: SearchViewHolder, position: Int) {
-        holder.bind(movies[position])
+        holder.bind(getItem(position))
     }
 
-    override fun getItemCount(): Int = movies.size
-
-    inner class SearchViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val imageViewPoster: ImageView = itemView.findViewById(R.id.imageViewPoster)
-        private val textViewTitle: TextView = itemView.findViewById(R.id.textViewTitle)
-        private val textViewGenreYear: TextView = itemView.findViewById(R.id.textViewGenreYear)
-        private val textViewRating: TextView = itemView.findViewById(R.id.textViewRating)
-
-        fun bind(movie: Movie) {
-            textViewTitle.text = movie.title
-            textViewGenreYear.text = movie.releaseDate.take(4) // e.g., 2024
-            textViewRating.text = String.format("%.1f", movie.voteAverage)
-
-            Glide.with(itemView.context)
-                .load("https://image.tmdb.org/t/p/w500${movie.posterPath}")
-                .placeholder(R.drawable.sample_movie)
-                .into(imageViewPoster)
-        }
+    class DiffCallback : DiffUtil.ItemCallback<Movie>() {
+        override fun areItemsTheSame(oldItem: Movie, newItem: Movie) = oldItem.id == newItem.id
+        override fun areContentsTheSame(oldItem: Movie, newItem: Movie) = oldItem == newItem
     }
 }
