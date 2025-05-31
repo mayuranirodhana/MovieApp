@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Base application theme -->
+    <style name="Base.Theme.MovieApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary branding color -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Secondary color -->
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+
+        <!-- Background color -->
+        <item name="android:windowBackground">@color/white</item>
+
+        <!-- Customize typography, elevation overlays, etc. -->
+    </style>
+
+    <!-- App theme -->
+    <style name="Theme.MovieApp" parent="Base.Theme.MovieApp" />
+
+</resources>
