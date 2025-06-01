@@ -1,6 +1,7 @@
 package com.mayura.movieapp.data.repository
 
 import RetrofitInstance
+import com.mayura.movieapp.data.model.Genre
 import com.mayura.movieapp.data.model.MovieResponse
 import retrofit2.Response
 
@@ -18,4 +19,21 @@ class Repository {
             page = page
         )
     }
+
+    suspend fun getGenres(): List<Genre> {
+        return try {
+            val response = RetrofitInstance.api.getGenres(apiKey)
+            response.genres
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun getMovieDetails(query: String, movieId: Int): Response<MovieResponse> {
+        return RetrofitInstance.api.getMovieDetails(
+            apiKey = apiKey,
+            movieId = movieId.toString()
+        )
+    }
+
 }

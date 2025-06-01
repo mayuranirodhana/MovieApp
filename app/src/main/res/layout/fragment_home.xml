@@ -1,78 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/homeFragment"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="8dp"
+    android:padding="16dp"
     tools:context=".ui.home.HomeFragment">
 
-    <!-- Filters -->
-    <HorizontalScrollView
+    <!-- Chip Group -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/category_chip_group"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fillViewport="true"
-        android:scrollbars="none">
+        android:layout_marginBottom="16dp"
+        app:singleSelection="true"
+        app:checkedChip="@id/chip_all"
+        app:singleLine="true"
+        app:selectionRequired="true">
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chipGroupGenres"
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_all"
+            style="@style/Widget.Material3.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingVertical="8dp"
-            app:singleSelection="true"
-            android:checkableBehavior="single"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_gravity="start"
-            app:chipSpacing="8dp">
+            android:text="all"
+            android:checked="true" />
 
-            <!-- Sample chips -->
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipAll"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="All"
-                android:checkable="true"
-                android:checked="true" />
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_action"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="action" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipAction"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Action"
-                android:checkable="true" />
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_comedy"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="comedy" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipComedy"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Comedy"
-                android:checkable="true" />
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_drama"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="drama" />
+    </com.google.android.material.chip.ChipGroup>
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipDrama"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Drama"
-                android:checkable="true" />
+    <!-- Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:layout_gravity="center"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_marginBottom="16dp" />
 
-            <!-- Add more genres as needed -->
-
-        </com.google.android.material.chip.ChipGroup>
-    </HorizontalScrollView>
-
-    <!-- RecyclerView for Movies -->
+    <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewMovies"
+        android:id="@+id/movie_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
+        android:paddingBottom="8dp"
         tools:listitem="@layout/item_movie" />
+
 </LinearLayout>

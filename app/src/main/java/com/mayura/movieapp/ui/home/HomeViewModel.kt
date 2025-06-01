@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mayura.movieapp.data.model.Genre
 import com.mayura.movieapp.data.model.Movie
 import com.mayura.movieapp.data.repository.Repository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,46 +15,64 @@ import kotlinx.coroutines.flow.*
 
 class HomeViewModel : ViewModel() {
 
+    private val repository = Repository()
+
     private val _movies = MutableLiveData<List<Movie>>()
     val movies: LiveData<List<Movie>> = _movies
 
-    private val repository = Repository()
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
 
-    // Store all fetched movies for reuse when filtering
-    private var allMovies: List<Movie> = emptyList()
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
 
-    // Simplified genre map for your 3 genres
-    private val genreMap = mapOf(
-        28 to "Action",
-        35 to "Comedy",
-        18 to "Drama"
-    )
+    private val _allMovies = mutableListOf<Movie>()
 
-    fun loadMovies(apiKey: String) {
+    private val _genres = MutableLiveData<List<Genre>>()
+    val genres: LiveData<List<Genre>> = _genres
+
+
+    init {
+        loadLatestMovies()
+
         viewModelScope.launch {
+            val genreList = repository.getGenres()
+            _genres.value = genreList
+        }
+    }
+
+    fun loadLatestMovies() {
+        viewModelScope.launch {
+            _isLoading.value = true
             try {
                 val response = repository.getLatestMovies()
                 if (response.isSuccessful) {
-                    val results = response.body()?.results ?: emptyList()
-                    allMovies = results
-                    _movies.postValue(results) // initially show all
+                    _allMovies.clear()
+                    response.body()?.results?.let { _allMovies.addAll(it) }
+                    _movies.value = _allMovies.toList()
+                    _error.value = null
+                }
+                else {
+                    _error.value = "Error: ${response.message()}"
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                _error.value = e.localizedMessage ?: "An unknown error occurred"
+            } finally {
+                _isLoading.value = false
             }
         }
     }
 
-    fun filterByGenre(genre: String) {
-        if (genre == "All") {
-            _movies.postValue(allMovies)
+    fun filterByGenre(genreName: String) {
+        if (genreName == "All") {
+            _movies.value = _allMovies.toList()
         } else {
-            val genreId = genreMap.filterValues { it == genre }.keys.firstOrNull()
-            if (genreId != null) {
-                val filtered = allMovies.filter { it.genreIds.contains(genreId) }
-                _movies.postValue(filtered)
-            } else {
-                _movies.postValue(emptyList())
+            viewModelScope.launch {
+                val genres = repository.getGenres()
+                val genreId = genres.find { it.name.equals(genreName, ignoreCase = true) }?.id
+                genreId?.let { id ->
+                    _movies.value = _allMovies.filter { movie -> movie.genreIds.contains(id) }
+                }
             }
         }
     }

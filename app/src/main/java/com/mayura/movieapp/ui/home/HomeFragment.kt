@@ -6,85 +6,76 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.mayura.movieapp.R
-import com.mayura.movieapp.ui.adapter.MoviesAdapter
+import com.mayura.movieapp.databinding.FragmentHomeBinding
+import com.mayura.movieapp.ui.adapter.MovieAdapter
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
 
     private val viewModel: HomeViewModel by viewModels()
+    private var _binding: FragmentHomeBinding? = null
+    private val binding get() = _binding!!
 
-    private lateinit var btnAll: Chip
-    private lateinit var btnAction: Chip
-    private lateinit var btnComedy: Chip
-    private lateinit var btnDrama: Chip
-
-    private lateinit var recyclerView: RecyclerView
-    private val apiKey = "14f7c50d6a82c630262cf1de7f4b85ca"
+    private lateinit var adapter: MovieAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(R.layout.fragment_home, container, false)
-        recyclerView = view.findViewById(R.id.recyclerViewMovies)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-
-        // Initialize buttons
-        btnAll = view.findViewById(R.id.chipAll)
-        btnAction = view.findViewById(R.id.chipAction)
-        btnComedy = view.findViewById(R.id.chipComedy)
-        btnDrama = view.findViewById(R.id.chipDrama)
-
-        return view
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        adapter = MovieAdapter { selectedMovie ->
+            // Prepare the bundle manually (since Safe Args is optional)
+            val bundle = Bundle().apply {
+                putParcelable("movie", selectedMovie)
+                putParcelableArrayList("genres", ArrayList(viewModel.genres.value ?: emptyList()))
+            }
+            findNavController().navigate(com.mayura.movieapp.R.id.nav_details, bundle)
+        }
+        binding.movieRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.movieRecyclerView.adapter = adapter
 
-        // Observe movies
-        viewModel.movies.observe(viewLifecycleOwner, Observer { movieList ->
-            recyclerView.adapter = MoviesAdapter(movieList)
-        })
-
-        // Load all movies
-        viewModel.loadMovies(apiKey)
-
-        // Set default selection to "All"
-        selectButton(btnAll)
-        viewModel.filterByGenre("All")
-
-        // Set filter listeners
-        btnAll.setOnClickListener {
-            selectButton(it)
-            viewModel.filterByGenre("All")
+        // Observe ViewModel
+        viewModel.genres.observe(viewLifecycleOwner) { genreList ->
+            adapter.setGenres(genreList)
         }
 
-        btnAction.setOnClickListener {
-            selectButton(it)
-            viewModel.filterByGenre("Action")
+        viewModel.movies.observe(viewLifecycleOwner) { movies ->
+            adapter.submitList(movies)
         }
 
-        btnComedy.setOnClickListener {
-            selectButton(it)
-            viewModel.filterByGenre("Comedy")
+
+        viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
+            binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE
+            binding.movieRecyclerView.visibility = if (loading) View.INVISIBLE else View.VISIBLE
         }
 
-        btnDrama.setOnClickListener {
-            selectButton(it)
-            viewModel.filterByGenre("Drama")
+        viewModel.error.observe(viewLifecycleOwner) { error ->
+            // Optionally show error message
         }
+
+        // Chip selection
+        binding.categoryChipGroup.setOnCheckedChangeListener { group, checkedId ->
+            val chip = group.findViewById<Chip>(checkedId)
+            viewModel.filterByGenre(chip.text.toString())
+        }
+
+        viewModel.loadLatestMovies()
     }
 
-    private fun selectButton(selected: View) {
-        val buttons = listOf(btnAll, btnAction, btnComedy, btnDrama)
-        buttons.forEach { it.isChecked = false }
-        (selected as? MaterialButton)?.isChecked = true
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

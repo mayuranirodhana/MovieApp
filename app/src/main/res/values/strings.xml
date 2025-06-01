@@ -1,4 +1,13 @@
 <resources>
     <string name="app_name">Movie App</string>
     <string name="movie_poster">movie_poster</string>
+    <string name="poster">Movie Poster</string>
+    <string name="open_homepage">Open Homepage</string>
+    <string name="movie_genre" />
+    <string name="movie_overview">\n</string>
+    <string name="movie_title" />
+    <string name="movie_release_year" />
+    <string name="movie_rating" />
+    <string name="movie_release" />
+    <string name="movie_genres" />
 </resources>

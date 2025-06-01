@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
@@ -13,53 +14,63 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mayura.movieapp.R
 import com.mayura.movieapp.databinding.FragmentSearchBinding
-import com.mayura.movieapp.ui.adapter.SearchAdapter
+import com.mayura.movieapp.ui.adapter.MovieAdapter
 
 class SearchFragment : Fragment() {
 
-    private lateinit var binding: FragmentSearchBinding
+    private var _binding: FragmentSearchBinding? = null
+    private val binding get() = _binding!!
+
     private val viewModel: SearchViewModel by viewModels()
-    private lateinit var adapter: SearchAdapter
+    private lateinit var adapter: MovieAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentSearchBinding.inflate(inflater, container, false)
+        _binding = FragmentSearchBinding.inflate(inflater, container, false)
         return binding.root
     }
 
-    @SuppressLint("RestrictedApi")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        adapter = SearchAdapter { movie ->
-            val action = SearchFragmentDirections.actionSearchFragmentToDetailsFragment(movie)
-            findNavController().navigate(action)
+        adapter = MovieAdapter { selectedMovie ->
+            // Prepare the bundle manually (since Safe Args is optional)
+            val bundle = Bundle().apply {
+                putParcelable("movie", selectedMovie)
+                putParcelableArrayList("genres", ArrayList(viewModel.genres.value ?: emptyList()))
+            }
+            findNavController().navigate(com.mayura.movieapp.R.id.nav_details, bundle)
         }
 
-        binding.searchView.setIconifiedByDefault(false)
-        binding.searchView.isIconified = false
-        binding.searchView.requestFocus()
+        binding.searchResultsRecycler.layoutManager = LinearLayoutManager(requireContext())
+        binding.searchResultsRecycler.adapter = adapter
 
-        binding.recyclerViewResults.layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerViewResults.adapter = adapter
+        // Auto focus and open keyboard
+        binding.searchInput.requestFocus()
+        binding.searchInput.postDelayed({
+            val imm = context?.getSystemService(InputMethodManager::class.java)
+            imm?.showSoftInput(binding.searchInput, InputMethodManager.SHOW_IMPLICIT)
+        }, 100)
 
-        // Hook SearchView input to ViewModel
-        val searchEditText =
-            binding.searchView.findViewById<androidx.appcompat.widget.SearchView.SearchAutoComplete>(
-                androidx.appcompat.R.id.search_src_text
-            )
-        searchEditText.setHintTextColor(ContextCompat.getColor(requireContext(), R.color.black))
-        searchEditText.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
-
-        searchEditText.doAfterTextChanged {
-            viewModel.search(it.toString())
+        // Debounced search
+        binding.searchInput.doAfterTextChanged {
+            val query = it.toString().trim()
+            viewModel.searchMovies(query)
         }
 
-        // Observe result changes
-        viewModel.results.observe(viewLifecycleOwner) { results ->
-            adapter.submitList(results)
+        // Observe results
+        viewModel.searchResults.observe(viewLifecycleOwner) { movies ->
+            adapter.submitList(movies)
         }
+
+        viewModel.genres.observe(viewLifecycleOwner) { genreList ->
+            adapter.setGenres(genreList)
+        }
+
     }
 
-
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

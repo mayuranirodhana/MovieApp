@@ -15,7 +15,7 @@
 
         <!-- Movie Poster -->
         <ImageView
-            android:id="@+id/imageViewPoster"
+            android:id="@+id/movie_poster"
             android:layout_width="100dp"
             android:layout_height="150dp"
             android:scaleType="centerCrop"
@@ -32,7 +32,7 @@
 
             <!-- Movie Title -->
             <TextView
-                android:id="@+id/textViewTitle"
+                android:id="@+id/movie_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Movie Title"
@@ -43,13 +43,25 @@
 
             <!-- Movie Genre / Year -->
             <TextView
-                android:id="@+id/textViewGenreYear"
-                android:layout_width="match_parent"
+                android:id="@+id/movie_year"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Action · 2023"
+                android:text="Movie Year"
+                android:ellipsize="end"
                 android:textSize="14sp"
-                android:textColor="#666666"
+                android:textColor="@android:color/darker_gray"
                 android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/movie_genres"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Genres"
+                android:textSize="14sp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginTop="4dp"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
             <!-- Rating with star -->
             <LinearLayout
